@@ -9,7 +9,7 @@ The aim of the project is to learn about Salesforce technology and better unders
 * checking candidate skill level
 * preventing from assigning no more than JobOffer.Max candidates
 
-The project is not finished. I am currently preparing myself to write a REST API. Further work on the project requires knowledge of the following technologies and tools:
+The project is not finished yet. I am currently preparing myself to write a REST API. Further work on the project requires knowledge of the following technologies and tools:
 * HTTP
 * REST API
 * JSON
