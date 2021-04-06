@@ -1,0 +1,34 @@
+public class AccountToJobOfferTriggerHandler {
+    
+    private List<AccountToJobOffer__c> newList = new List<AccountToJobOffer__c>();
+   
+    public AccountToJobOfferTriggerHandler(List<AccountToJobOffer__c> newList) {
+        
+        if (newList != null) {
+           this.newList = newList; 
+        }      
+    }
+    
+    public void handleBeforeInsert() {
+        
+        new MaxNumOfCandidatesBusinessRule(newList)
+            .addErrorIfCandidatesTrasholdExcedeed();
+        
+        new CheckSkillLevelBusinessRule(newList)
+        	.addErrorIfCandidateSkillLevelIsNotCompliant();              
+    }
+    
+       
+    private void addErrorIfCandidateSkillLevelIsNotCompliant() {
+        
+       	CheckSkillLevelBusinessRule br = new CheckSkillLevelBusinessRule(newList);
+        for (AccountToJobOffer__c item : newList) {
+        	br.IfCandidateSkillLevelIsNotCompliantWithJobOfferSkillLevelAddError(item);
+    	}
+    }
+    
+    public boolean shouldSkipTriggerLogic() {
+        AccountToJobOfferTriggerLogic__c skipTriggerLogicForCurrentUser = AccountToJobOfferTriggerLogic__c.getInstance();
+    	return skipTriggerLogicForCurrentUser.no_trigger__c; // default value is equal false/ 'unchecked' - field true/ 'checked' - skip trigger logic only when we are going to do a mass record load
+    }
+}
