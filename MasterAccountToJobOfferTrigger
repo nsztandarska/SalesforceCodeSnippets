@@ -1,0 +1,28 @@
+trigger MasterAccountToJobOfferTrigger on AccountToJobOffer__c (before insert, after insert, before update, after update, before delete, after delete) {
+    
+      
+    AccountToJobOfferTriggerHandler handler = new AccountToJobOfferTriggerHandler(Trigger.new);
+    
+    if (handler.shouldSkipTriggerLogic()) {
+        return;
+    }
+       
+    if (Trigger.isBefore) {
+        
+        if (Trigger.isInsert) {
+            
+            handler.handleBeforeInsert();
+        }
+        
+        if (Trigger.isUpdate) {}
+        if (Trigger.isDelete) {}
+        
+    }
+    
+    if (Trigger.isAfter) {
+        
+        if (Trigger.isInsert) {}
+        if (Trigger.isUpdate) {}
+        if (Trigger.isDelete) {}
+    }      
+}
