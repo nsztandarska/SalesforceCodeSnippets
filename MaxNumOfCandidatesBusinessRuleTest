@@ -1,0 +1,74 @@
+@isTest
+private class MaxNumOfCandidatesBusinessRuleTest {
+    
+    @isTest static void when_addingNextCandidateIsNotExceedingMaxNumber_then_CandidateIsAdded() {
+    
+    	//given - create necassary data - Account(Candidate), Job_Offer__c and junction AccountToJobOffer__c and set maxNumOfCandidate
+        
+        Integer maxNumberOfCandidates = 2;
+        
+    	Account testAccount1 = createNewAccount('test1');
+        insert testAccount1;
+        Account testAccount2 = createNewAccount('test2');
+        insert testAccount2;
+        Job_Offer__c testJobOffer = createJobOffer(maxNumberOfCandidates);
+        insert testJobOffer;
+        
+     	addCandidateToJobOffer(testAccount1.Id, testJobOffer.Id);
+   
+        //when
+        
+        Test.startTest();
+        
+        System.assert([SELECT Current_Number_Of_Candidates__c from Job_Offer__c WHERE  Id =:testJobOffer.Id].Current_Number_Of_Candidates__c < maxNumberOfCandidates);
+        addCandidateToJobOffer(testAccount2.Id, testJobOffer.Id);
+        Test.stopTest();
+        
+        //then
+        
+        System.assertEquals(2, [SELECT Current_Number_Of_Candidates__c from Job_Offer__c WHERE  Id =:testJobOffer.Id].Current_Number_Of_Candidates__c);
+        
+    }
+    
+    @isTest static void when_addingNextCandidateAndExceedingMaxNumber_then_AddError() {
+
+    	//given
+    	
+        Integer maxNumberOfCandidates = 1;
+        
+    	Account testAccount1 = createNewAccount('test1');
+        insert testAccount1;
+        Account testAccount2 = createNewAccount('test2');
+        insert testAccount2;
+        Job_Offer__c testJobOffer = createJobOffer(maxNumberOfCandidates);
+        insert testJobOffer;
+     	addCandidateToJobOffer(testAccount1.Id, testJobOffer.Id);
+        
+        
+        //when
+        
+        Test.startTest();
+        
+        System.assertEquals( maxNumberOfCandidates, [SELECT Current_Number_Of_Candidates__c from Job_Offer__c WHERE  Id =:testJobOffer.Id].Current_Number_Of_Candidates__c);
+        Database.SaveResult result = addCandidateToJobOffer(testAccount2.Id, testJobOffer.Id);
+        Test.stopTest();
+        
+        //then
+		
+        System.assert(!result.isSuccess(), 'Should not add new candidate when trying to add new candidate to job offer because number of candidate max exceeded.');
+   
+    }
+    
+    // method below creates junction object AccountToJobOffer__c
+    private static Database.SaveResult addCandidateToJobOffer(Id candidateId, Id offerId) {
+        return Database.insert(new AccountToJobOffer__c(Account__c = candidateId, Job_Offer__c = offerId), false);
+    }
+    
+    private static Account createNewAccount(String lastName) {
+        return new Account(LastName = lastName);
+    }
+    
+    private static Job_Offer__c createJobOffer(Integer maxNumberOfCandidates) {
+       return new Job_Offer__c(Max_candidates__c = maxNumberOfCandidates); 
+    }   
+}
