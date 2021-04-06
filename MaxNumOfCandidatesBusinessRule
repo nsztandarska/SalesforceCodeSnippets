@@ -1,0 +1,47 @@
+public class MaxNumOfCandidatesBusinessRule {
+    
+    private List<AccountToJobOffer__c> context = new List<AccountToJobOffer__c>();
+    
+    
+    public MaxNumOfCandidatesBusinessRule(List<AccountToJobOffer__c> context){ // context => Trigger.new
+		throwExceptionForIncorrectContex();  //if someone wants to use my code e.g. on API
+        this.context = context;
+    }
+    
+    
+    private void throwExceptionForIncorrectContex() {
+         if (context == null) {
+            throw new IllegalArgumentException();
+        }
+    }
+ 
+    private Map<Id, Job_Offer__c> getMapOfJobOffersRelatedTo(List<AccountToJobOffer__c> items) {
+        
+        Set<Id> jobOffersIds = new Set<Id>(); // Job_Offer__c  Ids in Trigger.new
+    	for(AccountToJobOffer__c item : items) {
+        	jobOffersIds.add(item.Job_Offer__c);
+    }
+       
+  		return new Map<Id, Job_Offer__c>([SELECT Id, Max_candidates__c, 
+                                                 Current_Number_Of_Candidates__c 
+                                             FROM Job_Offer__c 
+                                            WHERE Id IN :jobOffersIds]);
+    }
+    
+    public void addErrorIfCandidatesTrasholdExcedeed(){
+        
+        for (AccountToJobOffer__c item : context) {
+        	IfCandidateLimitTreshholdAddError(item);
+    	} 
+    }
+    
+
+    
+    private void IfCandidateLimitTreshholdAddError(AccountToJobOffer__c item) {
+        Map<Id, Job_Offer__c> jobOffersMap = getMapOfJobOffersRelatedTo(context);
+        Job_Offer__c relatedJobOffer = jobOffersMap.get(item.Job_Offer__c);       
+        if (relatedJobOffer.Current_Number_Of_Candidates__c >= relatedJobOffer.Max_candidates__c) {
+            item.addError('Limit exceeded');     
+        } 
+    }
+}
