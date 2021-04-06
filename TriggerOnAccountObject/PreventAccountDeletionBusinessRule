@@ -1,0 +1,49 @@
+public class PreventAccountDeletionBusinessRule {
+    
+    private List<Account> context = new List<Account>();
+    
+    public PreventAccountDeletionBusinessRule(List<Account> context){ // context => Trigger.new
+		throwExceptionForIncorrectContex();  //if someone wants to use my code e.g. on API
+        this.context = context;
+    }
+    
+    private void throwExceptionForIncorrectContex() {
+         if (context == null) {
+            throw new IllegalArgumentException();
+        }
+    }
+    
+    private Set<Id> getAccountIds(List<Account> items) {
+        
+        Set<Id> accIdSet = new Set<Id>();
+        
+        for (Account acc : items) {
+            accIdSet.add(acc.Id);
+        }
+        
+        return accIdSet;
+        
+    }
+    
+    private List<AccountToJobOffer__c> getListOfAccountToJobOfferRelatedToAccount(List<Account> items) {
+        Set<Id> accIds = getAccountIds(items);
+        
+        return new List<AccountToJobOffer__c>([SELECT Account__c, 
+                                                      Job_Offer__c, 
+                                                      Job_Offer__r.Status__c 
+                                                 FROM AccountToJobOffer__c
+                                                WHERE Account__c IN : accIds]);
+    }
+    
+    public void ifJobOfferStatusIsClosedPreventAccountDeletion(Account item){
+        
+        List<AccountToJobOffer__c> relatedJobOfferList = getListOfAccountToJobOfferRelatedToAccount(context);
+        for (AccountToJobOffer__c related : relatedJobOfferList) {
+            if (item.Id == related.Account__c) {
+                if (related.Job_Offer__r.Status__c == 'Closed') {
+                    item.addError('You can not delete account if job offer status is closed!');
+                }  
+            }
+        }
+    }
+}
