@@ -8,11 +8,13 @@ The aim of the project is to learn about Salesforce technology and better unders
 * preventing account deletion (Person Account - Candidate)
 * checking candidate skill level
 * preventing from assigning no more than JobOffer.Max candidates
+
 The project is not finished. I am currently preparing myself to write a REST API. Further work on the project requires knowledge of the following technologies and tools:
 * HTTP
 * REST API
 * JSON
 * Postman
+
 Next steps related to the project:
 * Create REST service method:GET, input parameter JobOfferId that returns JobOffer data as a JSON.
 	
