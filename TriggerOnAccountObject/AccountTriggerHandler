@@ -1,0 +1,9 @@
+public class AccountTriggerHandler {
+    
+    public static void handleBeforeDelete(List<Account> oldList) {
+        PreventAccountDeletionBusinessRule accDelBR = new PreventAccountDeletionBusinessRule(oldList);
+        for (Account item : oldList) {
+        	accDelBR.ifJobOfferStatusIsClosedPreventAccountDeletion(item);
+    	}
+    }
+}
