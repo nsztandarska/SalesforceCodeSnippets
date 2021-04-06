@@ -1,0 +1,61 @@
+public class CheckSkillLevelBusinessRule {
+    
+    private List<AccountToJobOffer__c> context = new List<AccountToJobOffer__c>();
+    
+ 
+    public CheckSkillLevelBusinessRule(List<AccountToJobOffer__c> context){ // context => Trigger.new
+		throwExceptionForIncorrectContex();  //if someone wants to use my code e.g. on API
+        this.context = context;
+    }
+    
+    private void throwExceptionForIncorrectContex() {
+        if (context == null) {
+            throw new IllegalArgumentException();
+        }
+    }
+    
+    private Map<Id, Job_Offer__c> getMapOfJobOffersRelatedTo(List<AccountToJobOffer__c> items) {
+        
+        Set<Id> jobOffersIds = new Set<Id>(); // Job_Offer__c  Ids in Trigger.new
+    	for(AccountToJobOffer__c item : items) {
+        	jobOffersIds.add(item.Job_Offer__c);
+    	}
+        // related Job_Offer__c in DB
+  		return new Map<Id, Job_Offer__c> ([SELECT Id, 
+                                                  Skill_Level__c 
+                                             FROM Job_Offer__c 
+	                                        WHERE Id IN :jobOffersIds]);
+    }
+    
+    private Map<Id, Account> getMapOfAccountsRelatedTo(List<AccountToJobOffer__c> items) {
+        
+        Set<Id> accIds = new Set<Id>(); // Job_Offer__c  Ids in Trigger.new
+    	for(AccountToJobOffer__c item : items) {
+        	accIds.add(item.Account__c);
+    	}
+        // related Job_Offer__c in DB
+  		return new Map<Id, Account> ([SELECT Id, 
+                                             Skill_Level_Person__c 
+                                        FROM Account 
+	                                   WHERE Id IN :accIds]);
+    }
+    
+    public void addErrorIfCandidateSkillLevelIsNotCompliant() {
+        
+
+        for (AccountToJobOffer__c item : context) {
+        	IfCandidateSkillLevelIsNotCompliantWithJobOfferSkillLevelAddError(item);
+    	}
+    }
+    
+    public void IfCandidateSkillLevelIsNotCompliantWithJobOfferSkillLevelAddError(AccountToJobOffer__c item) {
+    
+        Map<Id, Job_Offer__c> jobOffersMap = getMapOfJobOffersRelatedTo(context);
+        Map<Id, Account> accountsMap = getMapOfAccountsRelatedTo(context);
+        Job_Offer__c relatedJobOffer = jobOffersMap.get(item.Job_Offer__c);
+        Account relatedAccount = accountsMap.get(item.Account__c);
+        if (relatedJobOffer.Skill_Level__c != relatedAccount.Skill_Level_Person__c) {
+            item.addError('Inconsistent skill level!');     
+        } 
+    }
+}
