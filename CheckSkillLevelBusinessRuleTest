@@ -1,0 +1,82 @@
+@isTest
+private class CheckSkillLevelBusinessRuleTest {
+      
+    @isTest static void when_candidateSkillLevelFitIntoJobOfferSkillLevel_then_addCandidateToJobOffer() {
+        
+        //given
+        
+        String jobOfferSkillLevel = 'junior';
+    	Account testAccount1 = createNewAccount('test1', 'junior');
+        insert testAccount1;
+        Job_Offer__c testJobOffer = createJobOffer(jobOfferSkillLevel);
+        insert testJobOffer; 
+        
+    	//when
+    	
+    	Test.startTest();
+        System.assert([SELECT Skill_Level_Person__c FROM Account WHERE Id =: testAccount1.Id].Skill_Level_Person__c == jobOfferSkillLevel);
+        Database.SaveResult result = addCandidateToJobOffer(testAccount1.Id, testJobOffer.Id);
+        Test.stopTest();
+        
+    	//then
+    	
+    	System.assert(result.isSuccess(), 'Candidate should be inserted because skill level fit into job offer required skill level"');	
+    }
+    
+    @isTest static void when_candidateSkillLevelIsInconsistent_then_addError() {
+        
+        //given 
+        
+        String jobOfferSkillLevel = 'regular';
+    	Account testAccount1 = createNewAccount('test1', 'junior');
+        insert testAccount1;
+        Job_Offer__c testJobOffer = createJobOffer(jobOfferSkillLevel);
+        insert testJobOffer; 
+        
+        //when
+        
+        Test.startTest();
+        System.assertNotEquals(jobOfferSkillLevel, [SELECT Skill_Level_Person__c FROM Account WHERE Id =: testAccount1.Id].Skill_Level_Person__c );
+        Database.SaveResult result = addCandidateToJobOffer(testAccount1.Id, testJobOffer.Id);
+        Test.stopTest(); 
+        
+        //then
+        
+        System.assert(!result.isSuccess(), 'Should not add Candidate to Job_Offer__c because skill level is inconsistent.');
+        
+    }
+    
+
+    private static Database.SaveResult addCandidateToJobOffer(Id candidateId, Id offerId) {
+        return Database.insert(new AccountToJobOffer__c(Account__c = candidateId, Job_Offer__c = offerId), false);
+    }
+    
+    private static Account createNewAccount(String lastName, String candidateSkillLevel) {
+        return new Account(LastName = lastName, Skill_Level_Person__c = candidateSkillLevel);
+    }
+    
+    private static Job_Offer__c createJobOffer(String jobOfferSkillLevel) {
+       return new Job_Offer__c(Skill_Level__c = jobOfferSkillLevel); 
+    } 
+    
+    //technical test for invalid context - context = null -> it should throw exception
+    @isTest static void when_contextIsNull_then_throwExceptionForIncorrectContext() {
+        //given
+        
+        List<AccountToJobOffer__c> testRecordAccountToJobOffer = null;
+        boolean wasExceptionThrown = false;
+
+        
+        //when
+        Test.startTest();
+        //wasExceptionThrown = false;
+        try {
+            CheckSkillLevelBusinessRule BR = new CheckSkillLevelBusinessRule(testRecordAccountToJobOffer);
+        } catch (IllegalArgumentException ex){
+            wasExceptionThrown = true;
+            System.assert(wasExceptionThrown, 'For nullable context exception sholud be thrown.');
+
+        }
+        Test.stopTest();
+    }
+}
