@@ -17,6 +17,10 @@ The project is not finished yet. I am currently preparing myself to write a REST
 
 Next steps related to the project:
 * Create REST service method:GET, input parameter JobOfferId that returns JobOffer data as a JSON.
+
+![HR Company data model](sObjectSchema.jpg)
+
+sObjectSchema.jpg
 	
 ## Technologies
 Project is created with:
