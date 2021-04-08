@@ -14,6 +14,8 @@ The project is not finished yet. I am currently preparing myself to write a REST
 * REST API
 * JSON
 * Postman
+* Workbench
+* VS Code
 
 Next steps related to the project:
 * Create REST service methods:GET, POST, PUT, DELETE, PATCH.
