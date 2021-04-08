@@ -1,0 +1,71 @@
+@RestResource(urlMapping='/Job_Offer__c/*')
+global class JobOfferManager {
+    
+    @HttpGet  //READ
+    global static Job_Offer__c getJobOfferById() {
+        RestRequest req = RestContext.request;
+        String JobOfferId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);
+        Job_Offer__c result = [SELECT Position__c, 
+                               Requesting_Department__c, 
+                               Skill_Level__c, 
+                               Status__c, 
+                               Max_candidates__c, 
+                               Payroll_from__c, 
+                               Payroll_to__c  
+                               FROM Job_Offer__c 
+                               WHERE Id =:JobOfferId];
+        return result;
+    }
+
+    @HttpPost  //INSERT
+    global static Id createJobOffer(String pos, 
+                                    String department, 
+                                    String skillLevel, 
+                                    String status, 
+                                    Integer maxCandidates, 
+                                    Decimal payrolFrom, 
+                                    Decimal payrolTo) {
+        Job_Offer__c job = new Job_Offer__c(Position__c = pos, 
+                                            Requesting_Department__c = department, 
+                                            Skill_Level__c = skillLevel, 
+                                            Status__c = status, 
+                                            Max_candidates__c = maxCandidates, 
+                                            Payroll_from__c = payrolFrom, 
+                                            Payroll_to__c = payrolTo
+                                            );
+
+        insert job;
+        return job.Id;                                  
+    }
+
+    @HttpDelete
+    global static void deleteJobOffer() {
+        RestRequest req = RestContext.request;
+        String JobOfferId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);
+        Job_Offer__c jobToDelete = [SELECT Id FROM Job_Offer__c WHERE Id=:JobOfferId];
+        delete jobToDelete;
+    }
+
+    @HttpPut //UPSERT
+    global static Id upsertJobOffer(String pos, 
+                                    String department, 
+                                    String skillLevel, 
+                                    String status, 
+                                    Integer maxCandidates, 
+                                    Decimal payrolFrom, 
+                                    Decimal payrolTo,
+                                    String id) {
+
+        Job_Offer__c job = new Job_Offer__c(Id = id,
+                                        Position__c = pos, 
+                                        Requesting_Department__c = department, 
+                                        Skill_Level__c = skillLevel, 
+                                        Status__c = status, 
+                                        Max_candidates__c = maxCandidates, 
+                                        Payroll_from__c = payrolFrom, 
+                                        Payroll_to__c = payrolTo
+                                        );
+        //comapre records by Id - if there is record with given Id -> update record -> else create new record
+        upsert job;
+        return job.Id;
+    }
