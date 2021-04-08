@@ -16,7 +16,7 @@ The project is not finished yet. I am currently preparing myself to write a REST
 * Postman
 
 Next steps related to the project:
-* Create REST service method:GET, input parameter JobOfferId that returns JobOffer data as a JSON.
+* Create REST service methods:GET, POST, PUT, DELETE, PATCH.
 
 ![HR Company data model](sObjectSchema.jpg)
 
