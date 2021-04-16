@@ -31,3 +31,7 @@ Project is created with:
 * SOQL
 * Salesforce
 * unit tests
+* REST API
+* JSON
+* HTML
+
