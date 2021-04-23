@@ -1,0 +1,46 @@
+@isTest
+public class PreventAccountDeletionBusinessRuleTest {
+    
+    @isTest static void when_jobOfferStatusIsClosed_then_addError() {
+
+    //given
+
+    String jobOfferStatus = 'Closed';
+    String jobOfferSkillLevelRequired = 'junior';
+    Account testAccount1 = createNewAccount('test1', 'junior');
+    insert testAccount1;
+    Job_Offer__c testJobOffer = createJobOffer(jobOfferStatus, jobOfferSkillLevelRequired);
+    insert testJobOffer;
+    AccountToJobOffer__c candidateToJobOffer = addCandidateToJobOffer(testAccount1.Id, testJobOffer.Id);
+    insert candidateToJobOffer;
+
+    //when
+
+    Test.startTest();
+    System.assertEquals(jobOfferStatus, [SELECT Account__c, Job_Offer__r.Status__c FROM AccountToJobOffer__c WHERE Account__c =:testAccount1.Id].Job_Offer__r.Status__c);
+    Database.DeleteResult result = deleteAccount(testAccount1.Id);
+    Test.stopTest();
+ 
+    //then
+
+    System.assert(!result.isSuccess(), 'Should not delete Account record (Candidate) because job offer status is closed');
+    System.assert(result.getErrors().size() > 0);
+    System.assertEquals('You can not delete account if job offer status is closed!',result.getErrors()[0].getMessage());
+        
+    }
+
+    private static AccountToJobOffer__c addCandidateToJobOffer(Id candidateId, Id offerId) {
+        return new AccountToJobOffer__c(Account__c = candidateId, Job_Offer__c = offerId);
+    }
+
+    private static Account createNewAccount(String lastName, String candidateSkillLevel) {
+        return new Account(LastName = lastName, Skill_Level_Person__c = candidateSkillLevel);
+    }
+    
+    private static Job_Offer__c createJobOffer(String jobOfferStatus, String jobOfferSkillLevelRequired) {
+       return new Job_Offer__c(Status__c = jobOfferStatus, Skill_Level__c = jobOfferSkillLevelRequired); 
+    }
+    private static Database.DeleteResult deleteAccount(Id accId) {
+        return Database.delete(accId, false);
+    }
+}
