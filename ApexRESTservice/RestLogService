@@ -1,0 +1,12 @@
+public class RestLogService {
+    
+    public String logException(Exception ex) {
+        
+        String logId = 'no log entry';
+        if (ex == null) { return logId; }
+        RESTlog__c log = new RESTlog__c(Exception_Message__c = ex.getMessage(), Stacktrace__c = ex.getStackTraceString());
+        Database.SaveResult result = Database.insert(log, false); 
+        logId = result.isSuccess() ? log.Id : logId;
+        return logId; 
+    }
+}
