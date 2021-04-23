@@ -1,0 +1,111 @@
+@RestResource(urlMapping='/Job_Offer__c/*')
+global class JobOfferManager {
+
+    @HttpGet
+    global static void getJobOfferById() {
+        
+        RestRequest req = RestContext.request;
+        String JobOfferId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1); //get the Id from given endpoint
+        RestResponse resp = RestContext.response;
+        String jsonResponse = '';
+      
+        //get requested Job_Offer__c
+        List<Job_Offer__c> jobOffers = [SELECT Id, Position__c, 
+                               Requesting_Department__c, 
+                               Skill_Level__c, 
+                               Status__c, 
+                               Max_candidates__c, 
+                               Payroll_from__c, 
+                               Payroll_to__c  
+                               FROM Job_Offer__c 
+                               WHERE Id =:JobOfferId];
+            
+        if (jobOffers.isEmpty()) {
+            jsonResponse = '{"response": {"message": "Not Found"}}';
+            resp.statusCode = 404;
+            resp.responseBody = blob.valueOf(jsonResponse);
+            return;
+        } else {
+        	resp.addHeader('Content-Type', 'application/json'); // add a header to the response header map                              
+        	resp.responseBody = Blob.valueOf(JSON.serialize(jobOffers[0])); // set a body of a response 
+            return;
+        }          
+    }
+    
+    public virtual class RestReqResult {}
+    
+    public class RestReqResultOK extends RestReqResult {
+        public RestReqResultOK(Id jobId) {
+            this.jobId = jobId;
+        }
+        public String jobId {get; set;}
+    }
+    public class RestReqResultError extends RestReqResult {
+        
+        public RestReqResultError(String restLogId) {
+            this.restLogId = restLogId;
+        }
+        public String restLogId {get; set;}
+    }
+
+    @HttpPost  //INSERT
+    global static void createJobOffer(String pos, 
+                                    String department, 
+                                    String skillLevel, 
+                                    String status, 
+                                    Integer maxCandidates, 
+                                    Decimal payrolFrom, 
+                                    Decimal payrolTo) {
+        
+        //create job offer                                
+    	Job_Offer__c job =
+            new Job_Offer__c(
+            	Position__c = pos,                                
+            	Requesting_Department__c = department,                                 
+            	Skill_Level__c = skillLevel, 
+            	Status__c = status, 
+                Max_candidates__c = maxCandidates, 
+                Payroll_from__c = payrolFrom, 
+                Payroll_to__c = payrolTo
+            );
+        
+        //create RestReqResult
+       	RestReqResult restResult = new RestReqResult();
+        
+        //try to insert job offer and create RestReqResultOK(job.Id) and pass job Id
+        try {
+            insert job;
+            restResult = new RestReqResultOK(job.Id);
+        } catch (Exception ex) {
+            String logIdString = new RestLogService().logException(ex);
+            restResult = new RestReqResultError(logIdString);
+        }
+        
+        RestResponse res = RestContext.response; // create object to pass data from Apex RESTfull method to HTTP response
+        res.addHeader('Content-Type', 'application/json'); // add a header to the response header map                              
+        res.responseBody = Blob.valueOf(JSON.serialize(restResult)); // set a body of a response                              
+    }
+
+    @HttpDelete
+    global static void deleteJobOffer() {
+        RestRequest req = RestContext.request;
+        String JobOfferId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);      
+        RestResponse resp = RestContext.response;
+        
+        String jsonResponse = ''; 
+        
+        List<Job_Offer__c> jobToDelete = [SELECT Id FROM Job_Offer__c WHERE Id=:JobOfferId];
+        if (jobToDelete.isEmpty()) {
+         	jsonResponse = '{"response": {"message": "Not Found"}}';
+            resp.statusCode = 404;
+            resp.responseBody = blob.valueOf(jsonResponse);
+            return;
+        } else {
+            delete jobToDelete;
+            jsonResponse = '{"response": {"message": "Successfully deleted Job_Offer__c record"}}';
+            resp.statusCode = 200;
+        	resp.addHeader('Content-Type', 'application/json'); // add a header to the response header map                              
+        	resp.responseBody = Blob.valueOf(jsonResponse); // set a body of a response 
+          return;
+        }      
+    }
