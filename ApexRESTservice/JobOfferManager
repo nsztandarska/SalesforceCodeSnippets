@@ -69,3 +69,18 @@ global class JobOfferManager {
         upsert job;
         return job.Id;
     }
+    
+    @HttpPatch //UPDATE - updates fields in existing record
+    global static Id updateJobOfferFields() {
+
+        RestRequest req = RestContext.request;
+        String JobOfferId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);
+        Job_Offer__c jobToUpdate = [SELECT Id FROM Job_Offer__c WHERE Id=:JobOfferId];
+        Map<String, Object> param = (Map<String, Object>) JSON.deserializeUntyped(req.requestBody.toString());
+        for (String fieldName : param.keySet()) {
+            jobToUpdate.put(fieldName, param.get(fieldName));
+
+        }
+        update jobToUpdate;
+        return jobToUpdate.Id;        
+    }
